@@ -1,0 +1,25 @@
+version: "3"
+services:
+  django-backend:
+    container_name: django-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    command:
+      - gunicorn DRF_simplejwt.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app
+  
+  nginx:
+    image: nginx:1.21
+    container_name: nginx
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d
+      - ./static:/static
+    ports:
+      - "80:80"
+    depends_on:
+      - django-backend
