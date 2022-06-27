@@ -9,6 +9,8 @@ services:
     env_file:
       - .env
     command:
+      - bash
+      - -c
       - gunicorn DRF_simplejwt.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/usr/src/app
@@ -17,7 +19,7 @@ services:
     image: nginx:1.21
     container_name: nginx
     volumes:
-      - ./config/nginx.conf:/etc/nginx/conf.d
+      - ./config/nginx:/etc/nginx/conf.d
       - ./static:/static
     ports:
       - "80:80"
