@@ -1,22 +1,42 @@
-from rest_framework.views       import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response    import Response
-from drf_yasg.utils             import swagger_auto_schema
+from rest_framework.views            import APIView
+from rest_framework.permissions      import AllowAny, IsAuthenticated
+from rest_framework.response         import Response
+from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
 
-from users.serializers          import SingupSerializers
+from drf_yasg          import openapi
+from drf_yasg.utils    import swagger_auto_schema
 
+from users.serializers import SignUpSerializer
     
-class UserSignupView(APIView):
+class UserSignUpView(APIView):
     permission_classes = [AllowAny]
     
-    @swagger_auto_schema(request_body=SingupSerializers, responses={201: SingupSerializers})
+    @swagger_auto_schema(request_body=SignUpSerializer, responses={201: SignUpSerializer})
     def post(self, request):
-        serializer = SingupSerializers(data=request.data)
+        serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
     
+
+class UserSignOutView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    post_params = openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+        'refesh_token': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
+        }
+    )
+    
+    @swagger_auto_schema(request_body=post_params, responses={200: f'user nickname signout success'})
+    def post(self, request):
+        user = request.user
+        
+        for token in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=token)
+        
+        return Response({'message' : f'user {user.nickname} signout success'}, status=200)
+
 
 class UserinfoView(APIView):
     permission_classes = [IsAuthenticated]
