@@ -1,4 +1,5 @@
-from unittest.util import _MAX_LENGTH
+import re
+
 from rest_framework             import serializers
 from rest_framework.serializers import ModelSerializer
 
@@ -6,11 +7,20 @@ from users.models               import User
 
 
 class SignUpSerializer(ModelSerializer):
-    email    = serializers.CharField(max_length=100, required=True)
-    nickname = serializers.CharField(required=False)
-    password = serializers.CharField(required=True, write_only=True)
     
     def create(self, validated_data):
+        email    = validated_data.get('email')
+        password = validated_data.get('password')
+            
+        email_regexp    = '^\w+([\.-]?\w+)*@\w+(\.\w{2,3})+$'
+        password_regexp = '\S{8,20}$'
+        
+        if not re.match(email_regexp, email):
+            raise serializers.ValidationError('message : invalid email')
+        
+        if not re.match(password_regexp, password):
+            raise serializers.ValidationError('message : invalid password')
+        
         user = User.objects.create_user(**validated_data)  # self.Meta.model.objects.create_user(**validated_data)
         return user
     
