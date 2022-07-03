@@ -1,12 +1,13 @@
-from rest_framework.views            import APIView
-from rest_framework.permissions      import AllowAny, IsAuthenticated
-from rest_framework.response         import Response
-from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
+from rest_framework.views                 import APIView
+from rest_framework.permissions           import AllowAny, IsAuthenticated
+from rest_framework.response              import Response
+from rest_framework_simplejwt.tokens      import OutstandingToken, BlacklistedToken
 
 from drf_yasg          import openapi
 from drf_yasg.utils    import swagger_auto_schema
 
-from users.serializers import SignUpSerializer
+from users.models      import User
+from users.serializers import SignUpSerializer, SignInSerializer
     
 class UserSignUpView(APIView):
     permission_classes = [AllowAny]
@@ -20,6 +21,19 @@ class UserSignUpView(APIView):
         return Response(serializer.errors, status=400)
     
 
+class UserSignInView(APIView):
+    permission_classes = [AllowAny]
+    
+    @swagger_auto_schema(request_body=SignInSerializer, responses={200: 'refresh : refresh_token, access : access_token'})
+    def post(self, request):
+        serializer = SignInSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            token = serializer.validated_data
+            return Response(token, status=200)
+        return Response(serializer.errors, status=400)
+        
+        
 class UserSignOutView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -27,7 +41,6 @@ class UserSignOutView(APIView):
         'refesh_token': openapi.Schema(type=openapi.TYPE_STRING, description='string'),
         }
     )
-    
     @swagger_auto_schema(request_body=post_params, responses={200: f'user nickname signout success'})
     def post(self, request):
         user = request.user
