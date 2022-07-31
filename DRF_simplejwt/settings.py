@@ -89,6 +89,7 @@ WSGI_APPLICATION = 'DRF_simplejwt.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+## AWS RDS ##
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -100,6 +101,20 @@ DATABASES = {
         'OPTIONS': {'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"},
     }
 }
+
+'''
+## Docker DB ##
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ['MYSQL_DATABASE'],
+        'USER': 'root',
+        'PASSWORD': os.environ['MYSQL_ROOT_PASSWORD'],
+        'HOST': 'db',
+        'PORT': os.environ['MYSQL_TCP_PORT'],
+    }
+}
+'''
 
 ##CORS
 CORS_ORIGIN_ALLOW_ALL  = True

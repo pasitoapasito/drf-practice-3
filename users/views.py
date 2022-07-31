@@ -1,7 +1,7 @@
 from rest_framework.views                 import APIView
 from rest_framework.permissions           import AllowAny, IsAuthenticated
 from rest_framework.response              import Response
-from rest_framework_simplejwt.tokens      import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.tokens      import OutstandingToken, BlacklistedToken, RefreshToken
 
 from drf_yasg          import openapi
 from drf_yasg.utils    import swagger_auto_schema
@@ -45,7 +45,12 @@ class UserSignOutView(APIView):
     def post(self, request):
         user = request.user
         
-        for token in OutstandingToken.objects.filter(user=user):
+        try:
+            refresh = RefreshToken(request.data['refesh_token'])
+        except:
+            return Response({'detail': '유효하지 않거나 만료된 토큰입니다.'}, status=400)
+        
+        for token in OutstandingToken.objects.filter(user_id=refresh['user_id']):
             BlacklistedToken.objects.get_or_create(token=token)
         
         return Response({'message' : f'user {user.nickname} signout success'}, status=200)
